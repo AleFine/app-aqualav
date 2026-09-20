@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "app-1",
-    "slug": "app-1",
+    "name": "AquaLav",
+    "slug": "app-aqualav",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "app1",
+    "scheme": "aqualav",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -32,7 +32,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
