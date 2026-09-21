@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Pressable,
   RefreshControl,
   StyleSheet,
   View,
@@ -16,6 +15,7 @@ import { Screen } from '@/components/screen';
 import { Selector, type OpcionSelector } from '@/components/selector';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
+import { Cabecera } from '@/components/ui/cabecera';
 import { Spacing } from '@/constants/theme';
 import { useCatalogoEstados } from '@/hooks/use-catalogo-estados';
 import { useTheme } from '@/hooks/use-theme';
@@ -252,17 +252,7 @@ export default function ClienteReservasScreen() {
     <Screen style={styles.pantalla}>
       <View style={styles.encabezado}>
         {/* The tab bar stays visible on this route, so it renders its own back. */}
-        <Pressable
-          accessibilityRole="button"
-          hitSlop={Spacing.two}
-          onPress={volver}
-          style={({ pressed }) => [styles.volver, pressed ? styles.presionado : null]}>
-          <ThemedText type="smallBold" style={{ color: theme.accent }}>
-            ← Volver
-          </ThemedText>
-        </Pressable>
-
-        <ThemedText type="subtitle">Mis reservas</ThemedText>
+        <Cabecera titulo="Mis reservas" onBack={volver} />
 
         <Selector
           label="Estado"
@@ -336,9 +326,6 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingBottom: Spacing.three,
   },
-  volver: {
-    alignSelf: 'flex-start',
-  },
   lista: {
     flexGrow: 1,
     gap: Spacing.two,
@@ -351,8 +338,5 @@ const styles = StyleSheet.create({
   pie: {
     paddingTop: Spacing.three,
     alignItems: 'center',
-  },
-  presionado: {
-    opacity: 0.6,
   },
 });

@@ -1,6 +1,11 @@
 import { useCallback, useState } from 'react';
 
-type ToastTone = 'neutral' | 'error';
+/**
+ * Tonos disponibles. `success` existe porque confirmar una accion completada
+ * es tan informativo como avisar de un fallo, y la guia de Material lo pide
+ * explicitamente.
+ */
+export type ToastTone = 'neutral' | 'error' | 'success';
 
 type ToastState = {
   message: string;

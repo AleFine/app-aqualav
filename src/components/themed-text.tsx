@@ -1,28 +1,65 @@
-import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
+/**
+ * Texto tematizado. Es el unico componente de tipografia de la app.
+ *
+ * Los estilos salen de `Typography` en lugar de declararse aqui, para que la
+ * escala viva en un solo archivo. Los nombres de `type` historicos se conservan
+ * y se remapean a la escala nueva, asi ninguna pantalla necesita cambiar.
+ *
+ * Detalle importante: con fuentes propias, Android ignora `fontWeight`. Por eso
+ * cada peso es una familia distinta (`FontFamily.bodySemiBold`, etc.) y aqui
+ * nunca se combina `fontFamily` con `fontWeight`.
+ */
 
-import { Fonts, ThemeColor } from '@/constants/theme';
+import { StyleSheet, Text, type TextProps } from 'react-native';
+
+import { Fonts, TabularNums, Typography, type ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+export type TipoTexto =
+  /* Escala nueva */
+  | 'display'
+  | 'heading'
+  | 'bodyStrong'
+  | 'caption'
+  | 'overline'
+  /* Escala historica, conservada por compatibilidad */
+  | 'default'
+  | 'title'
+  | 'subtitle'
+  | 'small'
+  | 'smallBold'
+  | 'link'
+  | 'linkPrimary'
+  | 'code';
+
 export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
+  type?: TipoTexto;
   themeColor?: ThemeColor;
+  /**
+   * Cifras de ancho fijo. Obligatorio en precios, horarios y contadores:
+   * evita que la fila salte cuando el valor cambia.
+   */
+  tabular?: boolean;
 };
 
-export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
+export function ThemedText({
+  type = 'default',
+  themeColor,
+  tabular = false,
+  style,
+  ...rest
+}: ThemedTextProps) {
   const theme = useTheme();
+
+  /* `linkPrimary` ya no lleva un hex fijo: antes ignoraba el modo oscuro. */
+  const colorPorDefecto: ThemeColor = type === 'linkPrimary' ? 'brand' : 'text';
 
   return (
     <Text
       style={[
-        { color: theme[themeColor ?? 'text'] },
-        type === 'default' && styles.default,
-        type === 'title' && styles.title,
-        type === 'small' && styles.small,
-        type === 'smallBold' && styles.smallBold,
-        type === 'subtitle' && styles.subtitle,
-        type === 'link' && styles.link,
-        type === 'linkPrimary' && styles.linkPrimary,
-        type === 'code' && styles.code,
+        styles[type],
+        { color: theme[themeColor ?? colorPorDefecto] },
+        tabular && TabularNums,
         style,
       ]}
       {...rest}
@@ -31,43 +68,27 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 }
 
 const styles = StyleSheet.create({
-  small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
-  },
-  smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
-  },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
-  },
-  title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
-  },
-  subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
-  },
+  /* Escala nueva */
+  display: Typography.display,
+  heading: Typography.heading,
+  bodyStrong: Typography.bodyStrong,
+  caption: Typography.caption,
+  overline: Typography.overline,
+
+  /* Escala historica remapeada */
+  default: Typography.body,
+  /** Antes 48px: ilegible en una pantalla de 375. */
+  title: Typography.title,
+  subtitle: Typography.subtitle,
+  small: Typography.label,
+  smallBold: Typography.labelStrong,
   link: {
-    lineHeight: 30,
-    fontSize: 14,
+    ...Typography.label,
+    textDecorationLine: 'underline',
   },
-  linkPrimary: {
-    lineHeight: 30,
-    fontSize: 14,
-    color: '#3c87f7',
-  },
+  linkPrimary: Typography.labelStrong,
   code: {
-    fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
+    ...Typography.caption,
+    fontFamily: Fonts?.mono,
   },
 });

@@ -1,7 +1,16 @@
+/*
+ * Variables de fuente para la salida web.
+ *
+ * En nativo este archivo es un no-op: Metro solo lo inyecta en web, donde
+ * `Fonts` (Platform.select) resuelve estas variables. Las familias reales las
+ * carga `expo-font` en `src/app/_layout.tsx`, por eso encabezan cada pila.
+ */
 :root {
   --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+    Sora_600SemiBold, Sora, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
     Segoe UI Symbol, Noto Color Emoji;
+  --font-body:
+    PlusJakartaSans_400Regular, 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;

@@ -115,7 +115,7 @@ export default function LoginScreen() {
           hitSlop={Spacing.two}
           onPress={goToRegister}
           style={({ pressed }) => [styles.register, pressed && styles.pressed]}>
-          <ThemedText type="smallBold" style={{ color: theme.accent }}>
+          <ThemedText type="smallBold" style={{ color: theme.brand }}>
             ¿No tienes cuenta? Registrarse
           </ThemedText>
         </Pressable>

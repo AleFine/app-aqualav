@@ -1,23 +1,32 @@
+/**
+ * Pastilla pequenia para estados, categorias y contadores.
+ *
+ * La pastilla es un fondo tenido suave con el texto en el color fuerte del
+ * mismo tono: se lee como una etiqueta solida y no como un boton vacio con
+ * borde, que era el aspecto anterior y competia visualmente con los chips.
+ *
+ * `tone` cubre los casos comunes; `color` lo reemplaza cuando quien llama ya
+ * resolvio un color del tema (ver `EstadoBadge`). `icon` es la segunda senial:
+ * el color nunca debe ser la unica forma de distinguir un estado.
+ */
+
 import { memo } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Icon, type NombreIcono } from '@/components/ui/icon';
+import { Radius, Spacing, conAlfa } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-/**
- * Small pill used for statuses, categories and counters. `tone` covers the
- * common cases; `color` overrides it when the caller already resolved a theme
- * color (see `EstadoBadge`).
- */
 
 export type BadgeTone = 'neutral' | 'info' | 'exito' | 'alerta' | 'peligro';
 
 type BadgeProps = {
   label: string;
   tone?: BadgeTone;
-  /** Resolved color that wins over `tone`. */
+  /** Color resuelto que gana sobre `tone`. */
   color?: string;
+  /** Icono decorativo delante del rotulo. El rotulo ya nombra el estado. */
+  icon?: NombreIcono;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -25,28 +34,30 @@ export const Badge = memo(function Badge({
   label,
   tone = 'neutral',
   color,
+  icon,
   style,
 }: BadgeProps) {
   const theme = useTheme();
 
-  const colorPorTono: Record<BadgeTone, string> = {
-    neutral: theme.textSecondary,
-    info: theme.tint,
-    exito: theme.accent,
-    alerta: theme.text,
-    peligro: theme.danger,
+  /* Cada tono es un par: color fuerte para el texto, version suave para el fondo. */
+  const parPorTono: Record<BadgeTone, { fuerte: string; suave: string }> = {
+    neutral: { fuerte: theme.textSecondary, suave: theme.surfaceSunken },
+    info: { fuerte: theme.info, suave: theme.infoSoft },
+    exito: { fuerte: theme.success, suave: theme.successSoft },
+    alerta: { fuerte: theme.warning, suave: theme.warningSoft },
+    peligro: { fuerte: theme.danger, suave: theme.dangerSoft },
   };
 
-  const resuelto = color ?? colorPorTono[tone];
+  /* Con un color a medida el fondo se deriva del mismo color, no del tono. */
+  const { fuerte, suave } = color
+    ? { fuerte: color, suave: conAlfa(color, 0.14) }
+    : parPorTono[tone];
 
   return (
-    <View
-      style={[
-        styles.badge,
-        { borderColor: resuelto, backgroundColor: theme.backgroundElement },
-        style,
-      ]}>
-      <ThemedText type="small" style={[styles.label, { color: resuelto }]}>
+    <View style={[styles.badge, { backgroundColor: suave }, style]}>
+      {icon ? <Icon name={icon} size="xs" color={fuerte} /> : null}
+
+      <ThemedText type="caption" style={{ color: fuerte }} numberOfLines={1}>
         {label}
       </ThemedText>
     </View>
@@ -56,14 +67,11 @@ export const Badge = memo(function Badge({
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.two,
     borderRadius: Radius.full,
-    borderWidth: 1,
-  },
-  label: {
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '700',
   },
 });

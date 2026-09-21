@@ -1,14 +1,23 @@
+/**
+ * Selector de chips para listas cerradas y cortas: tipo de vehiculo, medio de
+ * pago, filtro de estado. Un desplegable necesitaria un modulo nativo; los
+ * chips no necesitan ninguno y se leen mejor en un telefono.
+ *
+ * El chip elegido no se distingue solo por el color: lleva ademas el icono de
+ * confirmacion, para que la seleccion sea visible sin depender del contraste
+ * entre azules.
+ */
+
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import Animated from 'react-native-reanimated';
 
-/**
- * Chip picker for short closed lists: vehicle type, payment method, state
- * filter. A dropdown would need a native module; chips need none and read
- * better on a phone.
- */
+import { ThemedText } from '@/components/themed-text';
+import { Icon } from '@/components/ui/icon';
+import { HitSize, Radius, Spacing, conAlfa, elevacion } from '@/constants/theme';
+import { usePresion } from '@/hooks/use-presion';
+import { useTheme } from '@/hooks/use-theme';
+import { seleccion } from '@/utils/haptica';
 
 export type OpcionSelector<T extends string> = {
   valor: T;
@@ -18,11 +27,61 @@ export type OpcionSelector<T extends string> = {
 type SelectorProps<T extends string> = {
   label: string;
   opciones: readonly OpcionSelector<T>[];
-  /** `null` means nothing is selected yet. */
+  /** `null` significa que todavia no hay nada seleccionado. */
   valor: T | null;
   onChange: (valor: T) => void;
   error?: string | null;
 };
+
+type ChipProps = {
+  etiqueta: string;
+  seleccionada: boolean;
+  /** El grupo tiene error y este chip no es el elegido. */
+  conError: boolean;
+  onPress: () => void;
+};
+
+/**
+ * Un chip suelto. Vive en su propio componente porque `usePresion` es un hook y
+ * no puede llamarse dentro del `map` de las opciones.
+ */
+function Chip({ etiqueta, seleccionada, conError, onPress }: ChipProps) {
+  const theme = useTheme();
+  /* La haptica la emite `seleccion()` al cambiar: aqui solo va la escala. */
+  const { estiloAnimado, alPresionar, alSoltar } = usePresion({ haptica: false });
+
+  const fondo = seleccionada ? theme.brand : theme.surfaceSunken;
+  const borde = seleccionada ? theme.brand : conError ? theme.danger : theme.border;
+  const colorTexto = seleccionada ? theme.onBrand : theme.textSecondary;
+
+  /* Solo el chip elegido proyecta halo, y tenido de marca, no gris. */
+  const halo = seleccionada
+    ? { boxShadow: `0px 6px 16px ${conAlfa(theme.brand, 0.3)}`, elevation: 6 }
+    : elevacion(0, theme.shadow);
+
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ selected: seleccionada }}
+      onPress={onPress}
+      onPressIn={alPresionar}
+      onPressOut={alSoltar}>
+      <Animated.View
+        style={[
+          styles.chip,
+          { backgroundColor: fondo, borderColor: borde },
+          halo,
+          estiloAnimado,
+        ]}>
+        {seleccionada ? <Icon name="confirmar" size="xs" color={colorTexto} /> : null}
+
+        <ThemedText type="smallBold" style={{ color: colorTexto }}>
+          {etiqueta}
+        </ThemedText>
+      </Animated.View>
+    </Pressable>
+  );
+}
 
 export function Selector<T extends string>({
   label,
@@ -31,8 +90,6 @@ export function Selector<T extends string>({
   onChange,
   error,
 }: SelectorProps<T>) {
-  const theme = useTheme();
-
   return (
     <View style={styles.root}>
       <ThemedText type="small" themeColor={error ? 'danger' : 'textSecondary'}>
@@ -44,31 +101,22 @@ export function Selector<T extends string>({
           const seleccionada = opcion.valor === valor;
 
           return (
-            <Pressable
+            <Chip
               key={opcion.valor}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: seleccionada }}
-              onPress={() => onChange(opcion.valor)}
-              style={({ pressed }) => [
-                styles.chip,
-                {
-                  backgroundColor: seleccionada ? theme.tint : theme.backgroundElement,
-                  borderColor: error && !seleccionada ? theme.danger : theme.border,
-                },
-                pressed && styles.pressed,
-              ]}>
-              <ThemedText
-                type="smallBold"
-                style={{ color: seleccionada ? theme.tintText : theme.text }}>
-                {opcion.etiqueta}
-              </ThemedText>
-            </Pressable>
+              etiqueta={opcion.etiqueta}
+              seleccionada={seleccionada}
+              conError={Boolean(error) && !seleccionada}
+              onPress={() => {
+                seleccion();
+                onChange(opcion.valor);
+              }}
+            />
           );
         })}
       </View>
 
       {error ? (
-        <ThemedText type="small" style={{ color: theme.danger }}>
+        <ThemedText type="small" themeColor="danger">
           {error}
         </ThemedText>
       ) : null}
@@ -86,12 +134,15 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.one,
+    /* 44pt: el minimo tactil de Apple, tambien para un chip. */
+    minHeight: HitSize.min,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.full,
     borderWidth: 1,
-  },
-  pressed: {
-    opacity: 0.7,
   },
 });

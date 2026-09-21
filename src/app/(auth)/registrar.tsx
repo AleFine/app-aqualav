@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { AuthScreen } from '@/components/auth-screen';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { TextField } from '@/components/ui/text-field';
 import { Toast } from '@/components/ui/toast';
 import { Radius, Spacing } from '@/constants/theme';
@@ -235,6 +236,8 @@ export default function RegistrarScreen() {
           accessibilityRole="checkbox"
           accessibilityState={{ checked: aceptaPolitica }}
           onPress={togglePolitica}
+          /* La casilla mide 22 pt: el hitSlop lleva el area tactil a 44 pt. */
+          hitSlop={Spacing.three}
           style={({ pressed }) => [styles.politica, pressed && styles.pressed]}>
           <View
             style={[
@@ -244,11 +247,7 @@ export default function RegistrarScreen() {
                 backgroundColor: aceptaPolitica ? theme.tint : 'transparent',
               },
             ]}>
-            {aceptaPolitica ? (
-              <ThemedText type="smallBold" style={{ color: theme.tintText }}>
-                ✓
-              </ThemedText>
-            ) : null}
+            {aceptaPolitica ? <Icon name="confirmar" size="sm" color={theme.tintText} /> : null}
           </View>
 
           <ThemedText

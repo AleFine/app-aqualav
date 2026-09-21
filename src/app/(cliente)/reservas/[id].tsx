@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -19,6 +18,7 @@ import { LineaTiempo } from '@/components/linea-tiempo';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
+import { Cabecera } from '@/components/ui/cabecera';
 import { Card } from '@/components/ui/card';
 import { TextField } from '@/components/ui/text-field';
 import { Toast } from '@/components/ui/toast';
@@ -273,26 +273,16 @@ export default function ClienteReservaDetalleScreen() {
             />
           }>
           {/* The tab bar stays visible on this route, so it renders its own back. */}
-          <Pressable
-            accessibilityRole="button"
-            hitSlop={Spacing.two}
-            onPress={volver}
-            style={({ pressed }) => [styles.volver, pressed ? styles.presionado : null]}>
-            <ThemedText type="smallBold" style={{ color: theme.accent }}>
-              ← Volver
-            </ThemedText>
-          </Pressable>
-
-          <View style={styles.encabezado}>
-            <ThemedText type="subtitle">{reserva.codigo}</ThemedText>
-            <EstadoBadge estado={reserva.estado} />
-          </View>
-
-          <ThemedText type="small" themeColor="textSecondary">
-            {actualizadoEn
-              ? `Actualizado a las ${formatearHora(actualizadoEn.toISOString())} · desliza hacia abajo para actualizar`
-              : 'Desliza hacia abajo para actualizar'}
-          </ThemedText>
+          <Cabecera
+            titulo={reserva.codigo}
+            subtitulo={
+              actualizadoEn
+                ? `Actualizado a las ${formatearHora(actualizadoEn.toISOString())} · desliza hacia abajo para actualizar`
+                : 'Desliza hacia abajo para actualizar'
+            }
+            onBack={volver}
+            accion={<EstadoBadge estado={reserva.estado} />}
+          />
 
           <Card>
             <ThemedText type="smallBold">Avance del servicio</ThemedText>
@@ -410,7 +400,8 @@ export default function ClienteReservaDetalleScreen() {
         statusBarTranslucent
         onRequestClose={cerrarCancelacion}>
         <KeyboardAvoidingView
-          style={styles.fondo}
+          /* El velo sale del tema: cambia con el modo claro y oscuro. */
+          style={[styles.fondo, { backgroundColor: theme.scrim }]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={[styles.hoja, { backgroundColor: theme.background }]}>
             <ScrollView
@@ -483,15 +474,6 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     paddingBottom: Spacing.five,
   },
-  volver: {
-    alignSelf: 'flex-start',
-  },
-  encabezado: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.two,
-  },
   dato: {
     gap: Spacing.half,
   },
@@ -508,7 +490,6 @@ const styles = StyleSheet.create({
   fondo: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   hoja: {
     width: '100%',
@@ -535,8 +516,5 @@ const styles = StyleSheet.create({
   accion: {
     flex: 1,
     borderRadius: Radius.md,
-  },
-  presionado: {
-    opacity: 0.6,
   },
 });

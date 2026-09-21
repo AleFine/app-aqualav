@@ -338,7 +338,8 @@ export default function ClienteVehiculosScreen() {
         statusBarTranslucent
         onRequestClose={cerrarFormulario}>
         <KeyboardAvoidingView
-          style={styles.fondo}
+          /* El velo sale del tema: cambia con el modo claro y oscuro. */
+          style={[styles.fondo, { backgroundColor: theme.scrim }]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={[styles.hoja, { backgroundColor: theme.background }]}>
             <ScrollView
@@ -353,7 +354,7 @@ export default function ClienteVehiculosScreen() {
                   hitSlop={Spacing.two}
                   onPress={cerrarFormulario}
                   style={({ pressed }) => (pressed ? styles.presionado : null)}>
-                  <ThemedText type="smallBold" style={{ color: theme.accent }}>
+                  <ThemedText type="smallBold" style={{ color: theme.brand }}>
                     Cerrar
                   </ThemedText>
                 </Pressable>
@@ -475,7 +476,6 @@ const styles = StyleSheet.create({
   fondo: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   hoja: {
     width: '100%',

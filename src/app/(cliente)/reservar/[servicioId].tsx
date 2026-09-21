@@ -15,6 +15,7 @@ import { Selector, type OpcionSelector } from '@/components/selector';
 import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Cabecera } from '@/components/ui/cabecera';
 import { Card } from '@/components/ui/card';
 import { Toast } from '@/components/ui/toast';
 import { Radius, Spacing } from '@/constants/theme';
@@ -188,7 +189,6 @@ const PildoraBloque = memo(function PildoraBloque({
 
 export default function ReservarScreen() {
   const router = useRouter();
-  const theme = useTheme();
   const { servicioId } = useLocalSearchParams<{ servicioId: string }>();
   const { toast, show, hide } = useToast();
 
@@ -461,17 +461,7 @@ export default function ReservarScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           {/* The tab bar stays visible on this route, so it renders its own back. */}
-          <Pressable
-            accessibilityRole="button"
-            hitSlop={Spacing.two}
-            onPress={volver}
-            style={({ pressed }) => [styles.volver, pressed ? styles.presionado : null]}>
-            <ThemedText type="smallBold" style={{ color: theme.accent }}>
-              ← Volver
-            </ThemedText>
-          </Pressable>
-
-          <ThemedText type="subtitle">Reservar</ThemedText>
+          <Cabecera titulo="Reservar" onBack={volver} />
 
           <Card>
             <View style={styles.encabezadoTarjeta}>
@@ -670,9 +660,6 @@ const styles = StyleSheet.create({
   contenido: {
     gap: Spacing.three,
     paddingBottom: Spacing.five,
-  },
-  volver: {
-    alignSelf: 'flex-start',
   },
   encabezadoTarjeta: {
     flexDirection: 'row',

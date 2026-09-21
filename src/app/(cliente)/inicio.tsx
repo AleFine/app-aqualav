@@ -9,12 +9,15 @@ import {
   type ListRenderItemInfo,
 } from 'react-native';
 
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { Cargando, VistaError, VistaVacia } from '@/components/estado-vista';
 import { ReservaCard } from '@/components/reserva-card';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
-import { Radius, Spacing } from '@/constants/theme';
+import { Icon } from '@/components/ui/icon';
+import { HitSize, Radius, Spacing, conAlfa, elevacion } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useCatalogoEstados } from '@/hooks/use-catalogo-estados';
 import { useTheme } from '@/hooks/use-theme';
@@ -136,27 +139,68 @@ export default function ClienteInicioScreen() {
 
   const encabezado = (
     <View style={styles.encabezado}>
-      <ThemedText type="subtitle">Hola, {usuario?.nombres ?? 'bienvenido'}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        Reserva tu lavado y sigue el avance de tu servicio desde aquí.
-      </ThemedText>
+      {/*
+       * Héroe: la única superficie de marca dentro de la app. Concentra el
+       * saludo y la acción primaria para que la pantalla tenga un solo punto
+       * de entrada evidente, como piden Material y la guía de Apple.
+       */}
+      <LinearGradient
+        colors={[theme.gradientStart, theme.gradientMid, theme.gradientEnd]}
+        start={{ x: 0.05, y: 0 }}
+        end={{ x: 0.95, y: 1 }}
+        locations={[0, 0.55, 1]}
+        style={[styles.heroe, elevacion(2, theme.shadow)]}
+      >
+        <View style={styles.marca}>
+          <View
+            style={[
+              styles.sello,
+              {
+                backgroundColor: conAlfa(theme.onGradient, 0.14),
+                borderColor: conAlfa(theme.onGradient, 0.22),
+              },
+            ]}
+          >
+            <Icon name="inicio" size="md" color={theme.onGradient} />
+          </View>
+          <ThemedText type="overline" style={{ color: theme.onGradientMuted }}>
+            AquaLav
+          </ThemedText>
+        </View>
 
-      <Button
-        title="Reservar un lavado"
-        onPress={irAServicios}
-        style={styles.cta}
-      />
+        <View style={styles.saludo}>
+          <ThemedText type="title" style={{ color: theme.onGradient }} numberOfLines={2}>
+            Hola, {usuario?.nombres ?? 'bienvenido'}
+          </ThemedText>
+          <ThemedText type="small" style={{ color: theme.onGradientMuted }}>
+            Reserva tu lavado y sigue el avance de tu servicio desde aquí.
+          </ThemedText>
+        </View>
+
+        {/* Sobre el degradado la acción primaria se invierte: superficie clara. */}
+        <Button
+          title="Reservar un lavado"
+          icon="adelante"
+          iconPosition="derecha"
+          variant="contraste"
+          onPress={irAServicios}
+          fullWidth
+          style={styles.cta}
+        />
+      </LinearGradient>
 
       <View style={styles.tituloSeccion}>
-        <ThemedText type="smallBold">Próximas reservas</ThemedText>
+        <ThemedText type="heading">Próximas reservas</ThemedText>
         <Pressable
           accessibilityRole="link"
-          hitSlop={Spacing.two}
+          accessibilityLabel="Ver todas las reservas"
           onPress={irAHistorial}
-          style={({ pressed }) => (pressed ? styles.presionado : null)}>
-          <ThemedText type="smallBold" style={{ color: theme.accent }}>
+          style={({ pressed }) => [styles.enlace, pressed && styles.presionado]}
+        >
+          <ThemedText type="labelStrong" themeColor="brand">
             Ver todas
           </ThemedText>
+          <Icon name="adelante" size="sm" tone="brand" />
         </Pressable>
       </View>
     </View>
@@ -217,19 +261,48 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.five,
   },
   encabezado: {
-    gap: Spacing.two,
     paddingBottom: Spacing.two,
+  },
+  heroe: {
+    borderRadius: Radius.xl,
+    padding: Spacing.four,
+    gap: Spacing.four,
+    overflow: 'hidden',
+  },
+  marca: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  sello: {
+    width: 34,
+    height: 34,
+    borderRadius: Radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saludo: {
+    gap: Spacing.two,
   },
   cta: {
     borderRadius: Radius.lg,
-    marginTop: Spacing.two,
   },
   tituloSeccion: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.two,
-    paddingTop: Spacing.three,
+    paddingTop: Spacing.five,
+    paddingBottom: Spacing.two,
+  },
+  enlace: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+    /* Area tactil completa sin desplazar el texto de su linea base. */
+    minHeight: HitSize.min,
+    paddingLeft: Spacing.two,
   },
   presionado: {
     opacity: 0.6,

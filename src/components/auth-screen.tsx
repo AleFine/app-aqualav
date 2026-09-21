@@ -1,17 +1,30 @@
-import { StatusBar } from 'expo-status-bar';
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { StatusBar } from 'expo-status-bar';
 
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/card';
 import { GradientBackground } from '@/components/ui/gradient-background';
-import { MaxFormWidth, Spacing } from '@/constants/theme';
+import { Icon } from '@/components/ui/icon';
+import { HitSize, MaxFormWidth, Radius, Spacing, conAlfa } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
- * Estructura común de las pantallas de acceso: fondo degradado, título sobre el
- * fondo y una tarjeta elevada con el formulario, centrada y a prueba de teclado.
+ * Estructura comun de las pantallas de acceso: fondo degradado con causticas,
+ * marca sobre el fondo y una tarjeta elevada con el formulario, centrada y a
+ * prueba de teclado.
+ *
+ * La marca aparece aqui y solo aqui: es el unico momento en que la app puede
+ * presentarse sin robarle espacio a una tarea del usuario.
  */
 
 type AuthScreenProps = {
@@ -27,6 +40,12 @@ type AuthScreenProps = {
 export function AuthScreen({ title, subtitle, children, footer, onBack }: AuthScreenProps) {
   const theme = useTheme();
 
+  /* Vidrio sobre el degradado: translucido, nunca un color plano. */
+  const vidrio = {
+    backgroundColor: conAlfa(theme.onGradient, 0.14),
+    borderColor: conAlfa(theme.onGradient, 0.22),
+  };
+
   return (
     <GradientBackground>
       {/* El degradado es oscuro en ambos esquemas: iconos claros arriba. */}
@@ -35,30 +54,45 @@ export function AuthScreen({ title, subtitle, children, footer, onBack }: AuthSc
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           style={styles.safeArea}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
           <ScrollView
             contentContainerStyle={styles.content}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.form}>
               {onBack ? (
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityLabel="Volver"
                   hitSlop={Spacing.two}
                   onPress={onBack}
-                  style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
-                  <ThemedText type="smallBold" style={{ color: theme.onGradient }}>
-                    ← Volver
-                  </ThemedText>
+                  style={({ pressed }) => [
+                    styles.botonAtras,
+                    vidrio,
+                    pressed && styles.presionado,
+                  ]}
+                >
+                  <Icon name="atras" size="md" color={theme.onGradient} />
                 </Pressable>
               ) : null}
 
-              <View style={styles.header}>
-                <ThemedText type="subtitle" style={{ color: theme.onGradient }}>
+              <View style={styles.marca}>
+                <View style={[styles.sello, vidrio]}>
+                  <Icon name="inicio" size="lg" color={theme.onGradient} />
+                </View>
+                <ThemedText type="labelStrong" style={{ color: theme.onGradientMuted }}>
+                  AquaLav
+                </ThemedText>
+              </View>
+
+              <View style={styles.encabezado}>
+                <ThemedText type="title" style={{ color: theme.onGradient }}>
                   {title}
                 </ThemedText>
                 {subtitle ? (
-                  <ThemedText type="small" style={styles.subtitle}>
+                  <ThemedText type="small" style={{ color: theme.onGradientMuted }}>
                     {subtitle}
                   </ThemedText>
                 ) : null}
@@ -90,16 +124,32 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     gap: Spacing.three,
   },
-  back: {
+  botonAtras: {
     alignSelf: 'flex-start',
+    width: HitSize.min,
+    height: HitSize.min,
+    borderRadius: Radius.full,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  pressed: {
+  presionado: {
     opacity: 0.6,
   },
-  header: {
-    gap: Spacing.one,
+  marca: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
-  subtitle: {
-    color: 'rgba(255, 255, 255, 0.78)',
+  sello: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  encabezado: {
+    gap: Spacing.one,
   },
 });

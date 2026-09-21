@@ -1,3 +1,4 @@
+import type { NombreIcono } from '@/components/ui/icon';
 import type { ThemeColor } from '@/constants/theme';
 import type { EstadoCatalogo } from '@/types/estado';
 import type { MedioPago } from '@/types/pago';
@@ -5,14 +6,18 @@ import type { EstadoConocido, EstadoReserva } from '@/types/reserva';
 import type { TipoVehiculo } from '@/types/vehiculo';
 
 /**
- * Spanish display labels and colors for the enum values of the API. The API is
- * the authority on which transitions exist; this module only names them.
+ * Etiquetas, colores e iconos de los enumerados de la API. La API es la
+ * autoridad sobre que transiciones existen; este modulo solo las nombra y les
+ * asigna un token del sistema de disenio.
+ *
+ * Regla de accesibilidad: el color nunca es la unica senial. Por eso cada
+ * estado tiene ademas un icono, y las vistas los muestran juntos.
  */
 
-/** A flat theme object as returned by `useTheme()`. */
+/** Objeto plano de tema, tal como lo devuelve `useTheme()`. */
 type Tema = Record<ThemeColor, string>;
 
-/** Exhaustive over the states this build knows: adding one here is compile-checked. */
+/** Exhaustivo sobre los estados que conoce este build: agregar uno se verifica en compilacion. */
 const ETIQUETAS_CONOCIDAS: Record<EstadoConocido, string> = {
   confirmada: 'Confirmada',
   en_atencion: 'En atención',
@@ -21,14 +26,14 @@ const ETIQUETAS_CONOCIDAS: Record<EstadoConocido, string> = {
   cancelada: 'Cancelada',
 };
 
-/** Widened view for lookups by a state that may not be in the known set. */
+/** Vista ensanchada para buscar por un estado que puede no estar en el conjunto conocido. */
 export const ETIQUETA_ESTADO: Record<string, string> = ETIQUETAS_CONOCIDAS;
 
 /**
- * Human label of a state, including one this build has never seen. A state added
- * to `transicion_estado` after this build shipped still renders readably
- * ("en_revision" -> "En revisión" is not possible without the accent, but
- * "En revision" beats a blank pill).
+ * Etiqueta legible de un estado, incluso de uno que este build nunca vio. Un
+ * estado agregado a `transicion_estado` despues de publicar este build sigue
+ * mostrandose de forma legible ("en_revision" -> "En revision" gana a una
+ * pastilla vacia).
  */
 export function etiquetaEstado(estado: EstadoReserva): string {
   const conocida = ETIQUETAS_CONOCIDAS[estado as EstadoConocido];
@@ -40,15 +45,15 @@ export function etiquetaEstado(estado: EstadoReserva): string {
 }
 
 /**
- * Main flow of the state machine, in order, as the API derives it from
- * `transicion_estado` (the states it marks `principal`). `cancelada` is not
- * part of it: it is an exception branch the timeline appends only when it
- * actually happened.
+ * Flujo principal de la maquina de estados, en orden, tal como la API lo deriva
+ * de `transicion_estado` (los estados que marca `principal`). `cancelada` no
+ * forma parte de el: es una rama de excepcion que la linea de tiempo agrega
+ * solo cuando ocurrio de verdad.
  *
- * It lives in a module-level cache rather than in a hook because `LineaTiempo`
- * reads it deep inside the detail screens. `CatalogoEstadosProvider` fills it
- * once per session; until then the build-time flow below is served, so the
- * timeline renders correctly on the very first frame and offline.
+ * Vive en una cache a nivel de modulo y no en un hook porque `LineaTiempo` lo
+ * lee en lo profundo de las pantallas de detalle. `CatalogoEstadosProvider` lo
+ * llena una vez por sesion; hasta entonces se sirve el flujo de compilacion, de
+ * modo que la linea de tiempo se dibuja bien en el primer cuadro y sin red.
  */
 const FLUJO_DE_RESPALDO: readonly EstadoReserva[] = [
   'confirmada',
@@ -59,40 +64,67 @@ const FLUJO_DE_RESPALDO: readonly EstadoReserva[] = [
 
 let flujoPrincipal: readonly EstadoReserva[] = FLUJO_DE_RESPALDO;
 
-/** Replaces the build-time flow with the one the API just reported. */
+/** Reemplaza el flujo de compilacion por el que acaba de reportar la API. */
 export function recordarCatalogoEstados(catalogo: readonly EstadoCatalogo[]): void {
   const principales = catalogo
     .filter((estado) => estado.principal)
     .sort((a, b) => a.orden - b.orden)
     .map((estado) => estado.codigo);
 
-  // An empty main flow would erase the timeline; keep what we had.
+  // Un flujo principal vacio borraria la linea de tiempo; se conserva el anterior.
   if (principales.length > 0) {
     flujoPrincipal = principales;
   }
 }
 
-/** The main flow currently known, in order. */
+/** El flujo principal conocido en este momento, en orden. */
 export function ordenEstados(): readonly EstadoReserva[] {
   return flujoPrincipal;
 }
 
-/** Accent color of a state, resolved against the active theme. */
+/**
+ * Color de acento de un estado, resuelto contra el tema activo.
+ *
+ * Los estados usan tokens semanticos, no la rampa de marca: `confirmada` es
+ * informacion, `en_atencion` es la unica etapa con color de marca (es la que
+ * esta ocurriendo), `finalizado` es exito y `cancelada` es peligro.
+ */
 export function COLOR_ESTADO(estado: EstadoReserva, theme: Tema): string {
   switch (estado) {
     case 'confirmada':
-      return theme.tint;
+      return theme.info;
     case 'en_atencion':
-      return theme.accent;
+      return theme.brand;
     case 'finalizado':
-      return theme.text;
+      return theme.success;
     case 'entregado':
       return theme.textSecondary;
     case 'cancelada':
       return theme.danger;
     default:
-      // A state added as data after this build shipped: neutral, never undefined.
-      return theme.textSecondary;
+      // Un estado agregado como dato despues de este build: neutro, nunca indefinido.
+      return theme.textMuted;
+  }
+}
+
+/**
+ * Icono de un estado. Acompania siempre a `COLOR_ESTADO` para que la lectura no
+ * dependa de distinguir colores.
+ */
+export function ICONO_ESTADO(estado: EstadoReserva): NombreIcono {
+  switch (estado) {
+    case 'confirmada':
+      return 'fecha';
+    case 'en_atencion':
+      return 'servicios';
+    case 'finalizado':
+      return 'exito';
+    case 'entregado':
+      return 'confirmar';
+    case 'cancelada':
+      return 'bloqueado';
+    default:
+      return 'info';
   }
 }
 
@@ -102,9 +134,22 @@ export const ETIQUETA_MEDIO_PAGO: Record<MedioPago, string> = {
   transferencia: 'Transferencia',
 };
 
+export const ICONO_MEDIO_PAGO: Record<MedioPago, NombreIcono> = {
+  efectivo: 'efectivo',
+  tarjeta_pos: 'tarjeta',
+  transferencia: 'pago',
+};
+
 export const ETIQUETA_TIPO_VEHICULO: Record<TipoVehiculo, string> = {
   sedan: 'Sedán',
   suv: 'SUV',
   camioneta: 'Camioneta',
   motocicleta: 'Motocicleta',
+};
+
+export const ICONO_TIPO_VEHICULO: Record<TipoVehiculo, NombreIcono> = {
+  sedan: 'sedan',
+  suv: 'suv',
+  camioneta: 'camioneta',
+  motocicleta: 'motocicleta',
 };
